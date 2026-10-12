@@ -41,6 +41,12 @@ properties:
     description: |
       Milliseconds without movement before resetting accumulated movement
 
+  click-release-delay-ms:
+    type: int
+    default: 0
+    description: |
+      Deactivate the layer this many ms after a mouse button is released (0 = disabled)
+
 input-processor-cells:
   - param1
   - param2
