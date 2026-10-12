@@ -80,10 +80,10 @@ static void update_layer_state(struct temp_layer_threshold_state *state, bool ac
 
     state->is_active = activate;
     if (activate) {
-        zmk_keymap_layer_activate(state->toggle_layer, false);
+        zmk_keymap_layer_activate(state->toggle_layer);
         LOG_DBG("Layer %d activated (threshold)", state->toggle_layer);
     } else {
-        zmk_keymap_layer_deactivate(state->toggle_layer, false);
+        zmk_keymap_layer_deactivate(state->toggle_layer);
         state->threshold_reached = false;
         state->accumulated_movement = 0;
         LOG_DBG("Layer %d deactivated (threshold)", state->toggle_layer);
@@ -243,10 +243,25 @@ static int temp_layer_threshold_handle_event(const struct device *dev, struct in
         return -EINVAL;
     }
 
-    if (event->type == INPUT_EV_KEY) {          // ← ここから追加
-            ...（前回お伝えしたブロック）...
-            return ZMK_INPUT_PROC_CONTINUE;
-        }                                           // ← ここまで
+    /* Mouse button: deactivate the layer N ms after the button is released */
+    if (event->type == INPUT_EV_KEY) {
+        const struct temp_layer_threshold_config *key_cfg = dev->config;
+        struct temp_layer_threshold_data *key_data = (struct temp_layer_threshold_data *)dev->data;
+
+        if (key_cfg->click_release_delay_ms > 0 && event->value == 0) {
+            if (k_mutex_lock(&key_data->lock, K_FOREVER) == 0) {
+                if (key_data->state.is_active) {
+                    k_work_reschedule(&layer_disable_works[key_data->state.toggle_layer],
+                                      K_MSEC(key_cfg->click_release_delay_ms));
+                    LOG_DBG("Click released, layer %d off in %d ms",
+                            key_data->state.toggle_layer, key_cfg->click_release_delay_ms);
+                }
+                k_mutex_unlock(&key_data->lock);
+            }
+        }
+        return ZMK_INPUT_PROC_CONTINUE;
+    }
+
     /* Only process relative movement events */
     if (event->type != INPUT_EV_REL) {
         return ZMK_INPUT_PROC_CONTINUE;
