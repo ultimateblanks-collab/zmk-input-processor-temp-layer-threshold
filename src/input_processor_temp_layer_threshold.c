@@ -28,6 +28,7 @@ struct temp_layer_threshold_config {
     int32_t threshold;
     const uint16_t *excluded_positions;
     size_t num_positions;
+    int32_t click_release_delay_ms;
 };
 
 struct temp_layer_threshold_state {
@@ -242,6 +243,10 @@ static int temp_layer_threshold_handle_event(const struct device *dev, struct in
         return -EINVAL;
     }
 
+    if (event->type == INPUT_EV_KEY) {          // ← ここから追加
+            ...（前回お伝えしたブロック）...
+            return ZMK_INPUT_PROC_CONTINUE;
+        }                                           // ← ここまで
     /* Only process relative movement events */
     if (event->type != INPUT_EV_REL) {
         return ZMK_INPUT_PROC_CONTINUE;
@@ -357,6 +362,7 @@ ZMK_SUBSCRIPTION(processor_temp_layer_threshold, zmk_keycode_state_changed);
         .threshold = DT_INST_PROP_OR(n, threshold, 0),                                             \
         .excluded_positions = excluded_positions_##n,                                              \
         .num_positions = DT_INST_PROP_LEN(n, excluded_positions),                                  \
+        .click_release_delay_ms = DT_INST_PROP_OR(n, click_release_delay_ms, 0),                   \
     };                                                                                             \
     DEVICE_DT_INST_DEFINE(n, temp_layer_threshold_init, NULL,                                      \
                           &processor_temp_layer_threshold_data_##n,                                \
