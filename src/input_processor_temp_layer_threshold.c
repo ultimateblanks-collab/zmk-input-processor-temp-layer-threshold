@@ -47,7 +47,7 @@ struct temp_layer_threshold_data {
     struct temp_layer_threshold_state state;
 };
 
-/* Static Work Queue Items */
+/* Static Work Queue Item */
 static struct k_work_delayable layer_disable_works[MAX_LAYERS];
 
 /* Position Search */
