@@ -47,7 +47,7 @@ struct temp_layer_threshold_data {
     struct temp_layer_threshold_state state;
 };
 
-/* Static Work Queue Item */
+/* Static Work Queue Items */
 static struct k_work_delayable layer_disable_works[MAX_LAYERS];
 
 /* Position Search */
@@ -80,10 +80,10 @@ static void update_layer_state(struct temp_layer_threshold_state *state, bool ac
 
     state->is_active = activate;
     if (activate) {
-        zmk_keymap_layer_activate(state->toggle_layer);
+        zmk_keymap_layer_activate(state->toggle_layer, false);
         LOG_DBG("Layer %d activated (threshold)", state->toggle_layer);
     } else {
-        zmk_keymap_layer_deactivate(state->toggle_layer);
+        zmk_keymap_layer_deactivate(state->toggle_layer, false);
         state->threshold_reached = false;
         state->accumulated_movement = 0;
         LOG_DBG("Layer %d deactivated (threshold)", state->toggle_layer);
